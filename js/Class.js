@@ -58,18 +58,6 @@ Class.extend = function (descriptor) {
 };
 
 /**
- * Defines a new class.
- *
- * @static
- * @param	{Object}	descriptor	the descriptor, which contains all methods and properties
- * @param	{Function}	base		the base (super) class
- */
-Class.define = function (descriptor, base) {
-	// if there is a base class, extend that, otherwise extend the root Class
-	return Class.extend.call(base || this, descriptor);
-};
-
-/**
  * Overrides the base property with the new property, preserving access to the base property.
  *
  * @private
@@ -98,3 +86,5 @@ Class._override = function (name, baseProperty, newProperty) {
 		return newProperty;
 	}
 };
+
+module.exports = Class;

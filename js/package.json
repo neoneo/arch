@@ -1,0 +1,9 @@
+{
+	"name": "arch",
+	"version": "0.1.0",
+	"description": "",
+	"dependencies": {
+		"lodash": ">=2.4"
+	},
+	"main": "./arch.js"
+}

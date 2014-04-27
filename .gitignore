@@ -1,8 +1,6 @@
 
-opzet/arch-blokken.txt
+opzet/*
 
-opzet/arch-scratch kopie.txt
+test/*
 
-opzet/arch.txt
-
-test/class.html
+js/node_modules/*
