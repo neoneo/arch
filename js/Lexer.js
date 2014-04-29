@@ -52,8 +52,8 @@ var Lexer = Class.extend({
 			OPERATOR: /^[=~<>+\-*\/^\\!:]+/,
 			// The different types of braces.
 			BRACE: /^[\(\)\[\]\{\}\|]/,
-			// Spaces can be significant.
-			SPACE: /^ /,
+			// Spaces can be significant. Multiple spaces are treated as one.
+			SPACE: /^[ ]+/,
 			DELIMITER: /^,;/,
 			// Comment: # followed by anything up to the end of the line.
 			COMMENT: /^#.*/
@@ -98,6 +98,10 @@ var Lexer = Class.extend({
 				column += match[0].length;
 
 				while (chunk.length) {
+					if (empty.test(chunk)) {
+						// The line ends with whitespace.
+						break;
+					}
 					var consumed = _.some(names, function (name) {
 						var match = words[name].exec(chunk);
 						if (match) {
@@ -113,7 +117,7 @@ var Lexer = Class.extend({
 					});
 
 					if (!consumed) {
-						throw "Could not match token for chunk: " + chunk;
+						throw new ParserException("Could not match token for chunk: " + chunk, number, column);
 					}
 				}
 			}
