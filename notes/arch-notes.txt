@@ -1,0 +1,608 @@
+abcformule = (a, b, c) ->
+
+	bereken de discriminant
+	het zou geinig zijn als hij commentaar direct zou herkennen als zodanig
+	het commentaar zou dan ook direct in markdown geschreven kunnen worden
+
+	D = b ^ 2 - 4 a c
+
+	definieer een functie die een van de oplossingen berekent
+	oplossing(teken) = (-b + teken sqrt(D)) / (2 a)
+
+	of alternatief
+
+	oplossing = teken ->
+		-b + teken sqrt(D)
+		------------------
+		       2 a
+
+
+	geef de vector met de oplossingen terug
+	// een if statement moet altijd iets teruggeven
+	if D >= 0 then
+		[oplossing(1)
+		 oplossing(-1)]
+	else
+		[undefined
+		 undefined]
+		of void / null / none / nil?
+		undefined is wel mooi want 1 / 0 = undefined
+
+
+	evt. alternatief
+	// if D >= 0 then [oplossing(1) oplossing(-1)]
+	// else [undefined undefined]
+
+grootste-oplossing = abcformule(1, 2, 3) fold using
+	(x, result) ->
+		if x > result then x else result
+	with -infinity
+
+grootste-oplossing = fold(abcformule(1, 2, 3), -infinity, (x, result) -> if x > result then x else result)
+
+grootste-oplossing = max abcformule(1, 2, 3)
+
+f = x -> x ^ 2
+
+add = (x, y) -> x + y
+
+add = (x)(y) -> x + y deze variant ook? of wordt dit: add: x -> y -> x + y
+
+add2 = add(2) is dus de functie y -> 2 + y
+
+curry = (fn, a) ->
+	x -> fn(a, x)
+
+add2 = x -> add(x, 2)
+
+sum = f ->
+	(a, b) ->
+		if a > b then 0 else f(a) + sum(f)(a + 1, b)
+
+
+sum = f ->
+	(a, b) ->
+		loop = (a, acc) ->
+			if a > b then
+				acc
+			else
+				loop(a + 1, acc + f(a))
+
+		loop(a, 0)
+
+
+     x x
+a = ------ is gelijk aan a = (x x) / log(x)
+    log(x)
+
+-b    teken sqrt(D)
+--- + -------------   dit wordt lastig
+2 a         2 a
+
+   b
+- ---  dit zou wel moeten kunnen
+  2 a
+
+     2
+D = b  - 4 a c ook?
+dan kan ook
+ sin x
+e      = e^sin(x) = exp(sin x)
+
+of
+  2
+ x        2
+e   = e^(x ) = e ^ (x ^ 2)
+
+
+
+matrix = [1 2 3
+          4 5 6
+          7 8 9]
+
+equivalent met
+matrix = [1, 2, 3; 4, 5, 6; 7, 8, 9]
+
+vector = [1 2 3] = [1, 2, 3]
+vector = [1
+		  2
+		  3]
+	  = [1; 2; 3]
+	  = [1 2 3]T ?
+
+dus matrix * vector is mogelijk
+
+matrix(2, 1) = 4
+
+Globale variabelen (kunnen overschreven worden):
+e
+i
+pi
+etc.
+
+functies:
+ln
+log
+log2
+exp
+sin
+cos
+asin
+acos
+tan
+atan
+sqrt
+power(a, b) = a ^ b
+|a| = abs
+re
+im
+arg
+round
+floor
+ceiling
+min (vector)
+max (vector)
+sum
+avg
+! = factorial
+gamma
+|matrix| = det(matrix)
+eigenvalues(matrix)
+|vector| = length(vector) = length vector = length of vector (als het argument 'of' heet) = norm(vector)
+
+Datum en tijd:
+today (tijd 00:00:00)
+now (tijd hh:mm:ss)
+year '2014-01-01' // 2014
+month, week, day, etc (alles enkelvoud)
+
+Tijdsinterval:
+	Reeks rechts associatieve functies:
+	x days // interval van x dagen, daarnaast: weeks, months, quarters, years, hours, minutes, seconds, milliseconds (alles meervoud)
+	// als x al een interval is, dan geven deze functies het aantal eenheden terug (zijn hun eigen inverse)
+	x = 1 days + 4 hours
+	y = x seconds // (24 + 4) * 3600
+	z = 1 days days // 1
+
+	Intervallen kunnen opgeteld worden, of vermenigvuldigd met een getal. (net als vectoren) De uitkomst is dan opnieuw een interval.
+	x = (2 days + 8 hours) * 3 // 7 dagen
+	Geen impliciete conversie naar getal.
+	Intervallen kunnen opgeteld worden bij een datum.
+
+	Als datums van elkaar worden afgetrokken is het resultaat ook een interval. Datums optellen kan niet.
+	Intervallen kunnen een negatieve lengte hebben.
+
+Etc etc
+
+a! en |a| moeten denk ik als vaste functievertalingen worden geparst. Zie verder voor faculteit, er is hier alleen geen spatie.
+
+
+Statements moeten altijd iets teruggeven. Dit kunnen meerdere waarden zijn:
+a, b = if x > 10 then 1, 2 else 3, 4
+
+Er moet ook een alternatieve syntax voor functieaanroepen komen, zodat die numerieke methoden begrijpelijk zijn aan te roepen
+
+bijv. a = cos pi
+
+M.a.w. je krijgt meerdere manieren om hetzelfde te bereiken:
+a = b + c (alleen voor functies met 2 argumenten)
+a = + b c (voor alle functies) (deze notatie is nodig om cos pi etc te ondersteunen)
+a = +(b, c) (voor alle functies)
+
+Significante spaties oplossen
+Hij probeert eerst op te lossen zoals de rekenregels zijn (a + b dus). Als een expressie met een functie begint (dus functie gevolgd door spatie), gaat hij over naar poolse notatie totdat de functie al zijn argumenten gevuld heeft. Daarna valt hij weer terug.
+Dus cos a + b = cos(a) + b, en cos a cos b = cos(a) * cos(b) (klopt dus met voorgaande)
+
+a = b + c * d
+a = + b c * d = (b + c) * d
+a = + b c d = (b + c) d = (b + c) * d
+a = + b * c d = b + (c * d)
+a = +(b, *(c, d))
+a = (b + c) d
+a = * d + b c = d * (b + c)
+Syntax + a b altijd van links naar rechts geevalueerd worden. Dus hier geen voorrangsregels met operatoren.
+a = sin x ^ 2 = (sin x) ^ 2
+a = + b c - d e = (b + c) - d e = (b + c) - (d * e)
+a = + b c - d * e = (b + c) - (d * e)
+a = b + a b = b + a * b en niet b * +(a, b)
+a = b (+ a b) is wel b * +(a, b)
+a = sin cos x = sin(cos x)
+a = sin ^ 2 x = (sin) ^ 2 x = ((y -> sin y) ^ 2)(x) = (sin x) ^ 2
+Unair + of -: geen spatie tussen - of + en operand
+bijv. -d e = (-d) * e en niet d - e
+a = + b c * -d e = (b + c) * (-d) * e en niet (b + c) * (d - e)
+met spatie: a = + b c * - d e = (b + c) * (d - e)
+Andere unaire operatoren kunnen niet: *a b is syntax error
+
+Voor een functie als zip krijg je dan:
+a = b zip c
+a = zip b c (en als er named args zijn) zip b with c
+
+Vermeningvuldigen (*): de operator " " (spatie) wordt vertaald naar * als er geen andere mogelijkheid is om de spatie te interpreteren
+a + b (witruimte)
+cos pi (functieaanroep)
+fun_met_veel_args a b c d e (functieaanroep)
+Haakjes kunnen helpen:
+fun_met_veel_args (a b) c d e = fun(a * b, c, d, e)
+
+Wat gebeurt er als poolse notatie voorkomt in een functieaanroep:
+fun a + b c d = fun(a, (b + c), d) want we zitten in poolse notatie
+fun(a + b c d) = fun(a + (b * c * d)) want we zitten niet in poolse notatie
+
+Spaties als scheidingsteken van argumenten alleen als niet als iets anders (behalve vermeningvuldigen) kan worden geinterpreteerd. Dus:
+map array x -> x ^ 2 (2 args, 2e is een functie) (is gelijk aan array map x -> x ^ 2 want 2 args)
+fun_met_veel_args a * b c d e = fun(a, b * c, d, e) want in pools
+
+<- -> (sublime doet raar over <)
+
+Chaining operator introduceren? Het resultaat van de expressie wordt dan als eerste argument in de functie gestuurd.
+a = b pi <- cos = cos(b * pi)
+a = b filter (x -> x(1) mod 2 = 0) <- flatten
+Zo'n operator voorkomt ambiguiteit bij functies met 1 argument: a <- cos b = cos(a) * b terwijl a cos b = a * cos(b)
+Met 2 argumenten is infix de standaardnotatie a + b, a map f = a <- map f (dus <- is dan optioneel)
+Met meer dan 2 is pools weer de standaard: abcformule a b c = a <- abcformule b c = a <- abcformule(b, c)
+
+; inferentie: inspringen impliceert koppeling:
+a = b
+	filter x ->
+		a1 = x(1)
+		a2 = x(2)
+		(a1 a2) mod 2 = 0 and a2 >= a1
+	<- flatten
+
+Functies maken in Scala:
+object + {
+	def apply(x: Double, y: Double) = x + y
+}
+
+Voor alle objecten zoals vectoren, matrices, complexe getallen (alle behalve Double) komen traits. Bij het maken van een object uit de bibliotheek moeten die ingemixt worden.
+bijv. new commons.Vector(1, 2) with arch.Vector
+
+y = interpolate x with (x1, y1), (x2, y2)
+z = interpolate (x, y) with (x1, y1), (x2, y2), (x3, y3), (x4, y4) using cubic
+
+a = map [1 2 3] using (_ ^ 2) dit is nu nog wel effe lastig
+a = map [1 2 3] using x -> x ^ 2
+sum = fold [1 2 3] with 0 using (_ + _) dit dus ook
+sum = fold [1 2 3] with 0 using (acc, x) -> acc + x
+
+argumentnamen als keywords laten gebruiken? Bijv.
+interpolate = (x, with) ->
+	x1, y1 = with(1)
+	x2, y2 = with(2)
+	require x1 < x2
+	require x1 <= x <= x2
+
+	y1 + (x - x1) / (x2 - x1) (y2 - y1)
+
+Nu kan in de aanroep with als naam gebruikt worden zoals boven. Misschien regel dat eerste argument niet met naam genoemd hoeft te worden (of eerste zoveel args)
+
+	Named boolean argumenten zonder waarde eventueel default true geven: onzin voorbeeld:
+	concat = (string, and, insert_spaces) ->
+		space = if insert_spaces then " " else ""
+		`%string%space%and`
+
+	Aanroep: a = concat "Jeroen" and "Knoef" insert_spaces # insert_spaces wordt hier gebruikt als boolean true
+
+	Functies die natuurlijke taal bevorderen:
+	when = (bool) -> bool
+		a = concat "Jeroen" and "Knoef" insert_spaces when x = 1 # insert_spaces wordt hier gebruikt als named argument
+	unless = (bool) -> !bool
+		a = concat "Jeroen" and "Knoef" insert_spaces unless x = 1 # hier ook
+	dont = (bool) -> !bool
+		a = concat "Jeroen" and "Knoef" dont insert_spaces # insert_spaces wordt hier gebruikt als boolean true
+	always = (bool) -> true
+		a = concat "Jeroen" and "Knoef" always insert_spaces # hier ook
+	never = (bool) -> false
+		a = concat "Jeroen" and "Knoef" never insert_spaces # hier ook
+
+	Komma's mogen in poolse notatie (worden genegeerd). Je kunt dan interpunctie gebruiken.
+		a = concat "Jeroen" and "Knoef", insert_spaces, unless x = 1
+
+	Voorbeeld met getallen:
+	repeat = (string, n) -> string * n
+
+	once = (x) -> 1
+		a = repeat "x" once
+	twice = (x) -> 2
+		a = repeat "x" twice
+	times = (x) -> x
+		a = repeat "x" 3 times
+
+
+Partial application:
+	inc = +(1) = (x) -> 1 + x
+	inv = /(1) = (x) -> 1 / x
+	Dit moet dus met haakjes. Pools moet altijd alle argumenten gebruiken.
+	Met underscores zoals scala?
+	half = /(_, 2) = (x) -> x / 2
+
+Functiecompositie
+	Als functies gelijkwaardig zijn met alle andere variabelen, dan krijg je compositie.
+	Met poolse notatie wordt dit alleen een beetje onduidelijk.
+	a = 2 cos // is: a = (x) -> 2 cos x
+
+	Je kunt nu wel van links naar rechts partial application toepassen, en de resulterende functie meteen aanroepen:
+	c = + 2 3 = (+ 2)(3) = (x -> 2 + x)(3)
+	d = + 2 * 3 4 = (+ 2)((* 3) (4)) = (x -> 2 + x)((y -> 3y)(4)) = (x -> 2 + x)(12) = 14
+	e = 2 + 3 * 4 moet eerst omgebouwd worden naar pools
+	f = 3 * 4 + 2 = (3 *)(4 +)(2) = (x -> 3x)(y -> 4 + y)(2) = (x -> 3x)(6) = 18 fout. Het moet dus wel met poolse notatie.
+	Omzetten naar pools:
+	f = + * 3 4 2 = (+ (* 3)(4))(2) = (+ (x -> 3x)(4))(2) = (y -> y + (x -> 3x)(4))(2)
+
+	a = 2 + cos pi = 2 + (cos pi) = + 2 cos pi
+		= (+ 2)(cos)(pi) = (x -> 2 + x)(y -> cos y)(pi) = (x -> 2 + x)(-1) = 1
+
+	dus 2 + = +(2)
+
+	a = 2 + cos = + 2 cos
+		= (+ 2)(cos) = (x -> 2 + x)(y -> cos y)
+		= (y -> 2 + cos y)
+
+	a = cos + 2 = cos(+(2)) = cos (x -> 2 + x) # dit willen we niet
+	a = (cos) + 2 = + (cos) 2 # dus haakjes verplicht stellen? Heeft als voordeel dat het duidelijk is dat hier functiecompositie plaatsvindt. In de voorbeelden boven is dat pas aan het eind van de expressie duidelijk. Dat zou tijdens compileren tot een heleboel functies leiden wat suboptimaal is.
+		= (+ cos)(2)
+		= (x -> (y -> cos y) + x)(2)
+		= (y -> cos y) + 2
+		= y -> cos y + 2
+
+	(+ 2) = +(2)
+
+	a = 2 + (cos) (sin)
+	a = 2 + (cos) * (sin)
+		= 2 + * (cos) (sin)
+		= + 2 * (cos) (sin)
+		= (+ 2)(* (cos) (sin))
+		= (x -> 2 + x)(* (y -> cos y) (y -> sin y))
+		= (x -> 2 + x)(* (y -> cos y))(y -> sin y)
+		= (x -> 2 + x)(z -> (y -> cos y) * z)(y -> sin y)
+		= (x -> 2 + x)((y -> cos y) * (y -> sin y))
+		= (x -> 2 + x)(y -> cos y * sin y)
+		= (y -> 2 + cos y * sin y)
+
+	(* cos) = (* (x -> cos x))
+		= (y -> (x -> cos x) * y)
+	(* cos)(2) = (x -> cos x) * 2
+
+	# Eerst alles dat al in pools staat, groeperen. Van links naar rechts, als een expressie met een functie begint, moet het pools zijn:
+	a = 2 + (cos (sin (* 0.5 pi))) # tussen haken staat dus een aantal groepen. Nu omzetten naar pools (we hebben alleen + over):
+	a = + 2 (cos (sin (* 0.5 pi))) = + 2 cos sin * 0.5 pi # (zonder haken)
+		# nu van links naar rechts steeds partieel uitvoeren
+		= (+)(2)(cos)(sin)(*)(0.5)(pi)
+		= ((a, b) -> a + b)(2)(y -> cos y)(z -> sin z)(q -> 0.5 * q)(pi)
+		= (b -> 2 + b)(y -> cos y)(z -> sin z)(q -> 0.5 * q)(pi)
+		= (y -> 2 + cos y)(z -> sin z)(q -> 0.5 * q)(pi)
+		= (z -> 2 + cos sin z)(q -> 0.5 * q)(pi)
+		= (q -> 2 + cos sin (0.5 * q))(pi)
+		= 2 + cos 1
+
+	a = 2 + cos sin (* 0.5) # eerst groeperen wat al in pools staat
+		= 2 + cos (sin (* 0.5))
+		= 2 + (cos (sin (* 0.5)))
+		= + 2 cos sin * 0.5
+		= (+)(2)(cos)(sin)(*)(0.5)
+		= ((a, b) -> a + b)(2)(cos)(sin)(*)(0.5)
+		= (b -> 2 + b)(x -> cos x)(y -> sin y)(*)(0.5)
+		= (x -> 2 + cos x)(y -> sin y)(*)(0.5)
+		= (y -> 2 + cos (sin y))((p, q) -> p * q)(0.5)
+		= ((p, q) -> 2 + cos (sin (p * q)))(0.5)
+		= q -> 2 + cos sin 0.5q
+
+	a = 2 (cos) * (sin) = 2 * (cos) * (sin) # nu naar pools:
+		= (* 2 cos) * sin
+		= * * 2 cos sin # evalueren:
+		= (*)(*)(2)(cos)(sin)
+		= ((a, b) -> a * b)((c, d) -> c * d)(2)(cos)(sin)
+		= ((c, d, b) -> c * d * b)(2)(cos)(sin)
+		= ((d, b) -> 2 * d * b))(x -> cos x)(sin)
+		= ((x, b) -> 2 * cos x * b)(y -> sin y)
+		= (x, y) -> 2 * cos x * sin y
+
+	a = 2 cos * sin = 2 * cos * sin
+		# van links naar rechts prefix functies isoleren:
+		= 2 * (cos (* sin))
+		= * 2 cos * sin
+		= (* 2)(cos)(*)(sin)
+		= ((a, b) -> a * b)(2)(cos)(*)(sin)
+		= (b -> 2 * b)(x -> cos x)(*)(sin)
+		= (x -> 2 * cos x)((a, b) -> a * b)(sin)
+		= ((a, b) -> 2 * cos (a * b))(x -> sin x)
+		= (x, b) -> 2 * cos (sin x * b)
+
+	Wat als q een functie is: q -> 2q
+	(z -> 2 cos z * sin z)(q -> 2q)
+	q -> 2 cos 2q * sin 2q
+
+	Wat gebeurt er met * cos 2?
+	* cos 2 = (* cos)(2)
+		= (* (x -> cos x))(2)
+		= (y -> (x -> cos x) * y)(2)
+		= (x -> cos x) * 2
+		# samenvoegen
+		= (x -> cos x * 2)
+
+	2 + 3 - 4 + 5
+		= (+ 2 3) - 4 + 5
+		= (- (+ 2 3) 4) + 5
+		= (+ (- (+ 2 3) 4) 5)
+		= (+)((-)((+)(2)(3))(4))(5)
+		= (+)((-)((a, b) -> a + b)(2)(3))(4))(5)
+		= (+)((-)(b -> 2 + b)(3))(4)(5)
+		= (+)((-)(5)(4))(5)
+		= (+)(1)(5)
+		= 6
+
+	* cos + = * (cos +)
+		= (*)((cos)(+))
+		= (*)((x -> cos x)((a, b) -> a + b))
+		= (*)((a, b) -> cos (a + b))
+		= ((p, q) -> p * q)((a, b) -> cos (a + b))
+		= (a, b, q) -> cos (a + b) * q
+
+
+
+		= * ((cos) (x, y) -> x + y))
+		= (* ((z -> cos z)((x, y) -> x + y)))
+		= (* ((x, y) -> cos (x + y)))
+		= (z -> ((x, y) -> cos (x + y)) * z)
+		= (x, y) -> cos (x + y) * x
+
+	* cos + is in feite nog geen prefix notatie. Dit wel:
+	* (cos) (+) =
+		(*)(cos)(+) =
+		((a, b) -> a * b)(x -> cos x)((p, q) -> p + q)
+		= ((x, b) -> cos x * b)((p, q) -> p + q)
+		= (x, p, q) -> cos x * (p + q)
+
+	* (cos) = ((a, b) -> a * b)(x -> cos x)
+		= (x, b) -> cos x * b
+
+	+ + = + ((x, y) -> x + y)
+		= ((a,b) -> (a + b))((x, y) -> x + y)
+		= (x, y, b) -> x + y + b
+
+	+ * = + ((x, y) -> x * y)
+		= ((a,b) -> (a + b))((x, y) -> x * y)
+		= (x, y, b) -> x * y + b
+
+	Detecteren van infix of prefix notatie.
+	(cos) * (sin) = * (cos) (sin)
+	cos * sin = cos (* sin)
+	(cos) (*) (sin) = (cos) * (*) * (sin) = * (* (cos) (*)) (sin)
+		* (cos) (*) = ((a, b) -> a * b)(x -> cos x)((p, q) -> p * q)
+			= (x, b) -> cos x * b)((p, q) -> p * q)
+			= (x, p, q) -> cos x * p * q
+		* (* (cos) (*)) (sin) = ((a, b) -> a * b)((x, y, z) -> cos x * y * z)(p -> sin p)
+			= ((x, y, z, b) -> (cos x * y * z) * b)(p -> sin p)
+			= (x, y, z, p) -> (cos x * y * z) * sin p
+	(cos) (sin) = (cos) * (sin)
+	(cos)(sin) = cos(sin)
+
+	2 + 3 = waarde/groep gevolgd door functie
+	+ a b + c d = (+ a b) + c d = (+ a b) + c * d = (+ a b) + (* c d) = + (+ a b) (* c d)
+
+	Algoritme:
+	1. Loop van links naar rechts door de expressie en maak van alles dat al in prefix staat een groep.
+		We moeten die groepen vasthouden omdat niet alle functies dezelfde ariteit hebben. Bijv. * cos + = * (cos +) en niet * (cos) (+).
+	2. Converteer de expressie geheel naar prefix:
+		a. Doorloop de mogelijke operatoren op aflopende prioriteit. Voor ieder type operator:
+			I. Selecteer de operatoren die nog niet in een groep staan. Deze operatoren staan nog in infix.
+			II. Loop van links naar rechts door de geselecteerde operatoren. Voor iedere operator:
+				1. Schuif de operator 1 positie naar links (verwissel de operator en de voorgaande groep van plaats).
+				2. Maak een groep van de operator en de argumenten die erop volgen (voor zover die er zijn).
+	3. De expressie is nu 1 groep in prefix notatie, bestaande uit groepen die ook alle in prefix staan. Evalueer:
+		a. Doorloop van links naar rechts de groepen.
+			I. Volgt er op de huidige groep nog een groep? Zo ja, evalueer dan groep 1 met groep 2 als argument.
+			II. Herhaal dit totdat alle groepen geweest zijn.
+			III. De uitkomst is nu een waarde of een functie.
+
+	Functie in meer variabelen:
+	f = (x, y, z) -> x + y + z)
+	g = (x, y) -> x + y)
+
+	a = 2 + (f) * (g) =
+		2 + (* (f) (g))
+		= (+ 2 (* (f) (g)))
+		= (+)(2)(* (f) (g))
+		= ((a, b) -> a + b)(2)(* (f) (g))
+		= ((b) -> 2 + b)(* (f) (g))
+		= ((b) -> 2 + b)((*)(f)(g))
+		= ((b) -> 2 + b)(((p, q) -> p * q)((x, y, z) -> x + y + z)(g))
+		= ((b) -> 2 + b)((x, y, z, q) -> (x + y + z) * q)((r, s) -> r + s)
+		= ((b) -> 2 + b)((x, y, z, r, s) -> (x + y + z) * (r + s))
+		= (x, y, z, r, s) -> 2 + (x + y + z) * (r + s)
+
+	Algoritme om over te stappen op pools (voor functies met 2 argumenten):
+	h = 1 + 2 * 3 ^ 2 * 2 + 4
+	Hoogste prioriteit schuift 1 naar links, linker operator eerst. De ontstane groep met die operator is nu een eenheid en kan niet meer gesplitst worden. Herhaal dit voor alle prioriteiten.
+	h = 1 + 2 - 3 + 4
+	h = (+ 1 2) - 3 + 4
+	h = (- (+ 1 2) 3) + 4
+	h = (+ (- (+ 1 2) 3) 4)
+
+	h = 1 * 2 + (^ 3 2) * 2 + 4
+	h = (* 1 2) + (^ 3 2) * 2 + 4
+	h = (* 1 2) + (* (^ 3 2) 2) + 4
+	h = (+ (* 1 2) (* (^ 3 2) 2)) + 4
+	h = (+ (+ (* 1 2) (* (^ 3 2) 2)) 4)
+	h = + + * 1 2 * ^ 3 2 2 4
+
+	h = 2 ^ 2 ^ 3 = 2 ^ 8 (rechts associatief)
+
+	Loop in volgorde door de operatoren. Als de operator RA is:
+	- bepaal of de volgende operator dezelfde prioriteit heeft
+		- indien ja: behandel die operator eerst. Dit resulteert in een groep als 2e argument.
+	- maak een groep van de operator en zijn argumenten
+	- converteer de groep naar prefix
+
+	h = 2 ^ (2 ^ 3)
+	h = 2 ^ (^ 2 3)
+	h = (2 ^ (^ 2 3))
+	h = (^ 2 (^ 2 3)) = ^ 2 ^ 2 3
+
+	h = 2 * 3 / 2
+	h = (* 2 3) / 2
+	h = (/ (* 2 3) 2)
+	h = / * 2 3 2
+
+	h = + a b + c # gemengd prefix en infix
+		= (+ a b) + c
+		= + + a b c
+
+# aan denken: operator prioriteit!!
+
+	cos sin
+	Poolse notatie. Dus moet van links naar rechts zonder vooruit of terugkijken geevalueerd kunnen worden.
+
+
+
+	a = 2 cos * sin // is: a = (x, y) -> 2 cos x sin y # na de cos komt nu een functie (*) van meer dan 1 argument. a = 2 (cos) (sin)
+		= 2 * cos * sin
+		= 2 * cos (* sin)
+		= * 2 (cos (* sin))
+		= (x, y) -> 2 * cos(sin x * y)
+	a = cos *(2) = (x) -> cos 2x
+	a = sin ^ 2 # is: a = (x) -> (sin 2 ^ x)
+	a = (sin) ^ 2 # is: a = (x) -> (sin x) ^ 2
+	a = sin ^(2) = (x) -> sin (2 ^ x)
+	a = sin max(pi) = (x) -> sin(max(pi, x))
+	Evaluatie geschiedt dus altijd van links naar rechts.
+
+	Dergelijke functies kunnen ook direct gebruikt worden:
+	a = (sin ^ 2) x = (sin x) ^ 2 of is dit (sin ^ 2) * x
+	a = (2 sin * cos) x = (2 sin x cos x)
+
+Backticks: string vervanging
+	v, a = "Jeroen", "Knoef"
+	n = `%v %a` # "Jeroen Knoef"
+	` is dus een functie net zoals | voor abs
+
+vect = (a, b, c)
+x = vect(1)
+y = vect(2)
+z = vect(3)
+x, y, z = vect
+
+
+
+Operatoren:
+and or not
+== equals
+<> != does not equal
+> greater than
+< less than
+>= greater than or equal to
+<= less than or equal to
+
+Intervallen:
+	a = [1, 10]
+	b = (1, 10)
+	Dit heb je misschien niet zo vaak nodig, en de syntax overlapt met tupels en vectoren. Misschien meer beschrijvend:
+	c = interval from 1 to 10 (maar dan nog iets verzinnen met inclusief of niet)
+
+http://commons.apache.org/proper/commons-daemon/
+http://commons.apache.org/proper/commons-math/
+http://nr.com/
+http://hc.apache.org/
+http://en.wikipedia.org/wiki/List_of_numerical_libraries#Java
+https://docs.python.org/3/reference/expressions.html#comparisons

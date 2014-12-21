@@ -1,0 +1,216 @@
+Arch
+====
+
+Alles is immutable, dus iedere assignment is een nieuwe variabele of een exception.
+Iedere functie moet dus een returnwaarde hebben. Alle if statements moeten een else hebben, en geven ook altijd iets terug.
+Literate programming zoals coffeescript: links uitgelijnd is commentaar, ingesprongen is code (markdown).
+Commentaar met #
+
+Declaratie:
+	a := 3
+	b := "string"
+	c := '2014-03-09 14:44:33'
+	d := ''[A-Z]+''
+
+Datatypes:
+	Scalair:
+		number / complex
+		boolean
+		string
+		date / datetime / time # onderscheid maken?
+		interval
+
+	Samengesteld:
+		vector / matrix
+		tuple
+
+	En:
+		function
+		regex
+
+Operaties:
+	Vermeningvuldigen (*): de operator " " (spatie) wordt vertaald naar * als er geen andere mogelijkheid is om de spatie te interpreteren
+	a := b c
+	a := b * c
+	a := bc # tenzij de variabele bc bestaat
+	# dit laatste is handig voor pools:
+	a := sin 2x
+
+	# parsen van 'abcd': als abcd niet als variabele bestaat, dan parse(abcd):
+	a * parse(bcd) # als a bestaat
+		a * (b * parse(cd)) # als b bestaat
+			a * (b * (c * d)) # als c en d bestaan
+			a * (b * cd) # als cd bestaat
+		a * (bc * d) # als bc bestaat en d bestaat
+		a * (bcd) # als bcd bestaat
+	ab * parse(cd) # als ab bestaat
+		ab * (c * d) als c en d bestaan
+		ab * (cd) als cd bestaat
+	abc * d # als abc bestaat en d bestaat
+	# error
+
+	Chaining: <-
+
+Functies:
+
+	f := x -> x ^ 2
+	g := (x, y) -> x + y
+	h := (a, b, c) ->
+		if a > b then
+			b c
+		else
+			a c
+		end
+	end
+
+Functieaanroep:
+	a := f(2)
+	a := f 2 # pools, ter ondersteuning van sin x, log x etc.
+	b := g(1, 2)
+	b := g 1 2 # pools, uitgebreid (lijkt op lisp)
+	# NEE b := 1 g 2 # nodig ter ondersteuning van x + y, alleen voor functies met 2 argumenten
+
+	# Met named arguments:
+	f x 2 # alleen als x niet als variabele bestaat
+	# Concreet voorbeeld: length := (of) -> <body>:
+	length of v # of is de naam van het argument
+	# Bij named aanroep hoeven niet alle argumenten bij naam genoemd te worden
+	interpolate x with ((x1, y1), (x2, y2)) # with is naam van argument tenzij with als variabele bestaat
+
+	Functies kunnen worden gedefinieerd als rechts associatief:
+	a! := !(a)
+	x degrees := degrees(a) # radialen - graden
+	x radians := radians(a) # graden - radialen
+
+Vector en matrix:
+
+	x := (1, 2, 3) # rijvector
+	y := (1; 2; 3) # kolomvector
+	A := (1, 2, 3; 4, 5, 6) # 2 x 3 matrix
+
+	# Uitlezen waarde:
+	p := A(1, 1) # 1 (1-gebaseerd)
+
+	Alle elementen van vectoren en matrices moeten van hetzelfde type zijn.
+
+Tupels, n-tupels:
+	t := (1, 2)
+	s := (1, 2, 3)
+	r := ("Jeroen", '1972-08-27')
+
+	De elementen van een tupel kunnen van verschillend type zijn.
+
+Range (:= vector):
+	a := 1..10
+	b := 10..1
+	c := 1..x
+	d := 1 .. 10
+
+Verzamelingen:
+	A := {} # lege verzameling
+	A := {1, 2, 3}
+	A := {x in N | x mod 2 := 0}
+	A := {x in B | predicate}
+	Verschil met vector is: unieke waarden en geen volgorde.
+	A := N \ {0, 1}
+	A := N \ {x in N : x mod 2 := 0}
+	|N| = infinite
+	|{1, 2}| = 2
+
+Bijzondere operaties:
+	|a| # absolute waarde, lengte van vector, determinant matrix, cardinaliteit verzameling
+	a! # a faculteit
+
+	x, y, z := 1, 2, 3
+	a, b := if x > 10 then 1, 2 else 3, 4
+
+Operatoren:
+	/\ \/ ~ # and or not
+	:= (toekenning)
+	= (vergelijking)
+	<> ~=
+	>
+	<
+	>=
+	<=
+	# ~ regex match
+
+Gereserveerde woorden:
+	true false undefined infinity
+	if then else begin end
+
+Blokken:
+	x := begin
+		a * b # returnwaarde
+	end
+
+	Impliciet begin bij \n na then, else en ->:
+	if a > 2 then
+		# blok, impliciet beeindigd door else
+	else
+		# blok
+	end
+
+	f := x ->
+		# blok
+	end
+
+	Dubbele punt aan einde van regel negeert de newline.
+	a := fold array using:
+		(acc, x) -> acc + x
+	Anders zou de functie als resultaat worden teruggegeven.
+
+	Gevolg:
+	a := b:
+		c
+	wordt gelezen als: a := b c en dit is a := b * c
+
+Parsen van pools:
+
+a := b + c * d
+a := + b c * d = (b + c) * d
+a := + b c d = (b + c) d := (b + c) * d
+a := + b * c d = b + (c * d)
+a := +(b, *(c, d))
+a := (b + c) d
+a := * d + b c = d * (b + c)
+Syntax + a b altijd van links naar rechts geevalueerd worden. Dus hier geen voorrangsregels met operatoren.
+a := + b c - d e = (b + c) - d e := (b + c) - (d * e)
+a := + b c - d * e = (b + c) - (d * e)
+a := b + a b = b + a * b en niet b * +(a, b)
+a := b (+ a b) is wel b * +(a, b)
+Unair + of -: geen spatie tussen - of + en operand en wel witruimte voor operator
+a := + b c * -d e = (b + c) * (-d) * e en niet (b + c) * (d - e)
+met spatie: a := + b c * - d e = (b + c) * (d - e)
+als geen witruimte voor + of -, dan is het een reguliere + of -:
+a := a-b = a - b
+Andere unaire operatoren kunnen niet: *a b is syntax error
+
+Wat gebeurt er als poolse notatie voorkomt in een functieaanroep:
+fun a + b c d := fun(a, (b + c), d) want we zitten in poolse notatie
+fun(a + b c d) := fun(a + (b * c * d))
+
+Spaties als scheidingsteken van argumenten alleen als niet als iets anders (behalve vermeningvuldigen) kan worden geinterpreteerd. Dus:
+map array x -> x ^ 2 (2 args, 2e is een functie) (is gelijk aan array map x -> x ^ 2 want 2 args)
+fun_met_veel_args a * b c d e = fun(a, b * c, d, e)
+
+<- -> (sublime doet raar over <)
+
+Chaining operator. Het resultaat van de expressie wordt dan als eerste argument in de functie gestuurd.
+a := b pi <- cos := cos(b * pi)
+a := b filter (x -> x(1) mod 2 := 0) <- flatten
+Zo'n operator voorkomt ambiguiteit bij functies met 1 argument: a <- cos b = cos(a) * b terwijl a cos b := a * cos(b)
+
+Functies maken in Scala:
+object + {
+	def apply(x: Double, y: Double) := x + y
+}
+
+
+
+
+http:#commons.apache.org/proper/commons-daemon/
+http:#commons.apache.org/proper/commons-math/
+http:#nr.com/
+http:#hc.apache.org/
+http:#en.wikipedia.org/wiki/List_of_numerical_libraries#Java

@@ -1,0 +1,49 @@
+a < b < c
+(< a b) < c
+< (< a b) c
+
+0 < 1 < 2
+
+< (< 0 1) 2
+< (0) 2
+0
+
+0 < 2 < 1
+< (< 0 2) 1 werkt niet
+
+Rechts assoc.
+a < b < c
+a < (< b c)
+< a (< b c)
+
+0 < 1 < 2
+< 0 (< 1 2)
+< 0 (1)
+0
+
+0 < 2 < 1
+< 0 (< 2 1)
+< 0 (-inf)
+-inf
+
+Links assoc voor >
+a > b > c
+(> a b) > c
+> (> a b) c
+
+2 > 1 > 0
+> (> 2 1) 0 ook hier altijd de kleinste teruggeven
+> (1) 0
+0
+
+1 > 2 > 0
+> (> 1 2) 0
+> (-inf) 0
+-inf
+
+2 > 0 > 1
+> (> 2 0) 1
+> (0) 1
+-inf
+
+a > b < c
