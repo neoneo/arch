@@ -1,7 +1,7 @@
 var Class = require("./Class.js");
 var _ = require("lodash");
 
-function ParserException(message, line, column) {
+function ParseException(message, line, column) {
 	this.message = message;
 	this.line = line;
 	this.column = column;
@@ -15,10 +15,10 @@ var Lexer = Class.extend({
 
 	tokenize: function (code) {
 
+		var TYPE = 0, SYMBOL = 1, LINE = 3, COLUMN = 4;
+
 		var lines = code.trim().split("\n");
 		var tokens = [];
-		var indents = [0];
-		var indent = 0;
 		var line = 1;
 
 		// These regexes need to match from the start of each line:
@@ -30,7 +30,12 @@ var Lexer = Class.extend({
 			BOOLEAN: /^(true|false)/,
 			UNDEFINED: /^undefined/,
 			INFINITY: /^infinity/,
-			PLACEHOLDER: /^_/
+			PLACEHOLDER: /^_/,
+			IF: /^if/,
+			THEN: /^then/,
+			ELSE: /^else/,
+			BEGIN: /^begin/,
+			END: /^end/
 		};
 
 		var words = {
@@ -44,7 +49,7 @@ var Lexer = Class.extend({
 			REGEX: /^\/([^\/\\]*(\\\/|\\)*)*\//,
 			// Number literals:
 			HEX: /^0x[0-9A-Fa-f]+/,
-			DOUBLE: /^\d+(\.\d+)?([Ee]\d+)?/, // Including exponential notation.
+			NUMBER: /^\d+(\.\d+)?([Ee]\d+)?/, // Including exponential notation.
 			// Date and time literals.
 			TIME: /^'\d{2}:\d{2}(:\d{2}\.\d+)?'/,
 			DATE: /^'\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2}\.\d+)?)?'/,
@@ -59,11 +64,17 @@ var Lexer = Class.extend({
 			COMMENT: /^#.*/
 		};
 
+		// Words that begin a block implicitly.
+		var implicitBegin = ["then", "else", "->"]
+		// And words that implicitly end a block.
+		var implicitEnd = ["else"];
+
 		var names = _.keys(reserved).concat(_.keys(words));
 		words = _.extend(words, reserved);
 
 		_.each(lines, function (line, index) {
 			var number = index + 1;
+			var column = 0;
 			if (!empty.test(line)) {
 				console.log(line);
 				var match = block.exec(line); // This matches always.
@@ -76,32 +87,16 @@ var Lexer = Class.extend({
 					return acc + count * (char === " " ? 1 : tabSpaces);
 				}, 0).value();
 
-				if (column > indent) {
-					indent = column;
-					tokens.push(["INDENT", column, number, column]);
-					indents.push(column);
-				} else if (column === indent) {
-					//tokens.push(["NEWLINE", "\n", number, column]);
-				} else {
-					while (column < indent) {
-						indents.pop();
-						indent = _.last(indents);
-						tokens.push(["DEDENT", indent, number, column]);
-					}
-					// column and indent should now be equal.
-					if (column !== indent) {
-						throw new ParserException("Indent does not match", number, column);
-					}
+				var chunk = line.substr(match[0].length).trim();
+
+				// Check for implicit block ends.
+				if (_.some(implicitEnd, function (word) {
+					return chunk.indexOf(word) === 0;
+				})) {
+					tokens.push(["END", "", number, column]);
 				}
 
-				var chunk = line.substr(match[0].length);
-				column += match[0].length;
-
 				while (chunk.length) {
-					if (empty.test(chunk)) {
-						// The line ends with whitespace.
-						break;
-					}
 					var consumed = _.some(names, function (name) {
 						var match = words[name].exec(chunk);
 						if (match) {
@@ -122,15 +117,14 @@ var Lexer = Class.extend({
 				}
 			}
 
+			var lastToken = _.last(tokens);
 			tokens.push(["NEWLINE", "\n", number, line.length]);
-		}, this);
 
-		// Unclosed indents.
-		while (_.size(indents) > 1) {
-			indents.pop();
-			indent = _.last(indents);
-			tokens.push(["DEDENT", indent, lines.length, 0]);
-		}
+			// Test for implicit begins against the last token (the actual consumed string).
+			if (_.indexOf(implicitBegin, lastToken[SYMBOL]) > -1) {
+				tokens.push(["BEGIN", "", number, line.length]);
+			}
+		}, this);
 
 		return tokens;
 	}
