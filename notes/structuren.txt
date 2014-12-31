@@ -1,0 +1,33 @@
+Samengestelde datastructuren:
+- lists: lijsten van objecten van hetzelfde type
+- records: objecten met velden.
+- vectoren, matrices (alleen getallen) (later)
+
+list := [1, 2, 3]
+Persoon := record
+	naam := string
+	leeftijd := number
+	kinderen := list of Persoon
+end
+vector := (1, 2, 3)
+
+iemand := Persoon
+	naam := "Barbapapa"
+	leeftijd := 45
+	kinderen := [
+		Persoon
+			naam := "Barbabientje"
+			leeftijd := 15
+			kinderen := []
+		end
+	]
+end
+
+Om records te ondersteunen moeten dus typen aan velden gegeven kunnen worden.
+Onderscheid maken tussen compile time operatoren en runtime operatoren. In voorbeeld hierboven is record een compile time operator (en list ook).
+Die leidt in de scope tot metadata voor Persoon die aangeeft dat deze een impliciet blok begint.
+
+Vectoren en arrays zijn in uitwisselbaar als de elementen getallen zijn.
+
+Functies als max en sum accepteren 1 argument, een list of een vector:
+a := max (1, 2, 3) # (1, 2, 3) is eigenlijk een vector

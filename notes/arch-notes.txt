@@ -150,6 +150,19 @@ gamma
 eigenvalues(matrix)
 |vector| = length(vector) = length vector = length of vector (als het argument 'of' heet) = norm(vector)
 
+Operator voorrang van laag naar hoog:
+:=
+-> <-
+\/
+/\
+= ~
+< >
+(alle letters)
++ -
+* /
+^
+(alle andere karakters)
+
 Datum en tijd:
 today (tijd 00:00:00)
 now (tijd hh:mm:ss)
@@ -161,8 +174,8 @@ Tijdsinterval:
 	x days // interval van x dagen, daarnaast: weeks, months, quarters, years, hours, minutes, seconds, milliseconds (alles meervoud)
 	// als x al een interval is, dan geven deze functies het aantal eenheden terug (zijn hun eigen inverse)
 	x = 1 days + 4 hours
-	y = x seconds // (24 + 4) * 3600
-	z = 1 days days // 1
+	y = (seconds) x // (24 + 4) * 3600
+	z = (days) 1 days // 1
 
 	Intervallen kunnen opgeteld worden, of vermenigvuldigd met een getal. (net als vectoren) De uitkomst is dan opnieuw een interval.
 	x = (2 days + 8 hours) * 3 // 7 dagen

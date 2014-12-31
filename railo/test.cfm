@@ -1,5 +1,6 @@
 <cfsavecontent variable="code">
-abcformule := (a, b, c) ->
+abcformule := (a, b,
+	c) ->
 
 	# bereken de discriminant
 
@@ -17,18 +18,24 @@ abcformule := (a, b, c) ->
 		[undefined, undefined]
 	end
 
-end
-
+end # einde van de functie
+<!---
 grootste_oplossing := abcformule(1, 2, 3) fold using:
 	(x, result) ->
 		if x > result then x else result
-	end:
-	with -infinity
+	end,
+	with -infinity --->
 </cfsavecontent>
-<!--- <cfsavecontent variable="code">
-a:=fold array using:
-	(acc,x)->acc+x
-</cfsavecontent> --->
+<cfsavecontent variable="code">
+<!--- -4a --->
+x := (-b + teken sqrt (b ^ 2 -4ac)) / 2a
+<!--- sin -x --->
+<!--- sin (a + b)(c + d) --->
+<!--- sin 2x --->
+<!--- sin 2 x = (sin 2) * x --->
+<!--- a := sqrt (b ^ 2 + c ^ 2 - 2 b c cos alpha) --->
+
+</cfsavecontent>
 <cfscript>
 	l = new arch.Lexer()
 	p = new arch.Parser()
@@ -37,6 +44,8 @@ a:=fold array using:
 	// exit;
 
 	nodes = p.group(tokens)
+	nodes = p.split(nodes)
+	p.identify(nodes)
 	// This should be an array of length 1.
 	dump(nodes)
 </cfscript>

@@ -30,19 +30,20 @@ component {
 		var words = StructNew("linked")
 		// Identifiers: function names, variables. This can be a compound identifier, like 'ab' meaning 'a * b'.
 		words.IDENTIFIER = pattern("^[A-Za-z]\w*")
-		// String literals: anything between double quotes.
-		words.STRING = pattern("^""([^""]|"""")*""")
+		// String literals: anything between single quotes.
+		words.STRING = pattern("^'([^']|\\')*'")
 		// Template: a string with % placeholders.
-		words.TEMPLATE = pattern("^`([^`]|``)*`")
-		// Regex literals: anything between slashes, backslash escapes.
-		words.REGEX = pattern("^/([^/]|\\/)*/[gi]?")
-		// Number literals:
-		words.HEX = pattern("^0x[0-9A-Fa-f]+")
-		words.NUMBER = pattern("^\d+(\.\d+)?([Ee]\d+)?") // Including exponential notation.
+		words.TEMPLATE = pattern("^""([^""]|\\"")*""")
+		// Regex literals: anything between back ticks, backslash escapes.
+		words.REGEX = pattern("`([^`]|\\`)*`[gi]?")
 		// Date and time literals.
-		words.TIME = pattern("^'\d{2}:\d{2}(:\d{2}\.\d+)?'")
-		words.DATE = pattern("^'\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2}\.\d+)?)?'")
+		words.TIME = pattern("^\d{2}:\d{2}(:\d{2}\.\d+)?")
+		words.DATE = pattern("^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2}\.\d+)?)?")
+		words.NUMBER = pattern("^\d+(\.\d+)?([Ee]\d+)?") // Number literals including exponential notation.
 		words.CONTINUE = pattern("^:$")
+		words.ASSIGN = pattern("^:=")
+		words.LAMBDA = pattern("^->")
+		words.CHAIN = pattern("^<-")
 		// Operators: a sequence of one or more of the following characters.
 		words.OPERATOR = pattern("^[=~<>+\-*/^\\!:]+")
 		// The different types of braces.
@@ -52,8 +53,8 @@ component {
 		words.BRACKETCLOSE = pattern("^\]")
 		words.BRACEOPEN = pattern("^\{")
 		words.BRACECLOSE = pattern("^\}")
-		// PIPEOPEN: pattern("^\|"),
-		// PIPECLOSE: pattern("^\|"),
+		words.PIPEOPEN = pattern("^|")
+		words.PIPECLOSE = pattern("^|")
 		// Spaces can be significant. Multiple spaces are treated as one.
 		words.SPACE = pattern("^[ ]+")
 		words.DELIMITER = pattern("^[,;]")
@@ -92,7 +93,7 @@ component {
 
 				while (!chunk.isEmpty()) {
 					var consumed = names.some(function (name) {
-						var lexeme = match(chunk, words[name])
+						var lexeme = match(chunk, words[arguments.name])
 						if (!lexeme.isEmpty()) {
 							tokens.append(token(arguments.name, lexeme, number, column))
 							chunk = chunk.removeChars(1, lexeme.len())
@@ -125,8 +126,8 @@ component {
 
 		tokens.append(token("END", "", 0, 0))
 
-		// Filter all new lines that follow BEGIN or COMMENT. All remaining new lines are then statement separators.
-		var removeAfter = ["BEGIN", "COMMENT"]
+		// Filter all new lines that follow BEGIN, COMMENT or DELIMITER. All remaining new lines are then statement separators.
+		var removeAfter = ["BEGIN", "COMMENT", "DELIMITER"]
 		return tokens.filter(function (token, index) {
 			// New lines cannot occur as the first token, because that would imply an empty line, which is filtered out already.
 			if (arguments.token.type == "NEWLINE" && removeAfter.find(tokens[arguments.index - 1].type) > 0) {

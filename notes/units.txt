@@ -1,0 +1,33 @@
+Ondersteuning van gebruik van eenheden.
+
+afstand := 30 km
+verschil := afstand - 20 km
+
+Indien als postfix gebruikt, markeert deze het getal als zijnde in die eenheid.
+Iedere eenheid produceert ook een conversiefunctie:
+
+(m) verschil # dit is dus een aanroep naar de functie m met als argument de variabele verschil. Het ziet eruit als een cast.
+of:
+a := verschil m # omdat verschil een variabele is, is m nu een functie aanroep en geen eenheidsmarkering.
+
+Iedere soort eenheid heeft een standaardeenheid, bijv. m voor afstanden.
+
+Getallen met eenheden kunnen alleen worden opgeteld/afgetrokken als het dezelfde soort eenheid is. Vermenigvuldigen / delen / machtsverheffen kan altijd. Eenheden worden bijgehouden door de exponenten te onthouden: {m: 1, s: -2} = m s ^ -2
+
+Dit moet allemaal tijdens compile time afgehandeld worden. Tijdens runtime zijn er geen eenheden. Conversies moeten door de compiler inline worden gezet oid.
+
+Importeren:
+import si-units
+import currencies # online ophalen van wisselkoersen
+
+Datums wijken een klein beetje af omdat de eenheden hier tijdsduur zijn. Tijdsduur kan bij datums of bij andere tijdsduur opgeteld worden.
+
+Hoeken:
+a := 90 deg
+
+b := sin a # = 1 door automatisch de rad conversie toe te passen
+Is dus equivalent met:
+b := sin (rad) a
+De compiler moet nu weten dat a in graden staat, en de conversie opnemen in de expressie.
+
+De eenheden hebben de hoogste prioriteit van alle operatoren.

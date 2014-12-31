@@ -1,0 +1,20 @@
+Als operatoren als postfix zijn gedefinieerd, dan worden deze altijd als postfix geinterpreteerd tenzij:
+- het de eerste node van de expressie is
+- vooraf wordt gegaan door een andere functie
+
+Dus 3! = 3 ! = ! 3
+Maar 2 + ! 3 = 2 + 3!
+
+
+Als een functie (alfanumerieke naam) als postfix is gedefinieerd, dan is het onderscheid postfix / prefix niet te maken. De functie kan dan alleen postfix worden gebruikt. (Dit geldt ook voor de eenheden)
+
+Voor prefix operatoren die ook als infix gebruikt kunnen worden (+ en -) geldt dat ze alleen als prefix worden geinterpreteerd als er geen spatie tussen zit. Dus -1 en niet - 1 = (-) 1 (dit is een functie met 1 argument).
+
+We moeten alleen a-b = a - b onderscheiden van a -b = a * -b. Dit kan omdat een prefix - a b altijd een spatie heeft na de operator. Dus een - zonder spatie erna is of infix of unair. Indien infix dan is er voor en na de - een getal (literal) of variabele of groep. Met andere woorden, voor de - staat niet nog een functie. Bijv. a+-b = a + -b. sin -b.
+
+Dit betekent bijvoorbeeld:
+sin-cos = sin -cos = sin (-cos x) = x -> sin (-cos x)
+
+sin - cos = sin (- (cos)) = (x, y) -> sin (cos x - y)
+Als je de functies wilt aftrekken:
+(sin) - (cos)
