@@ -39,7 +39,8 @@ component {
 		// Date and time literals.
 		words.TIME = pattern("^\d{2}:\d{2}(:\d{2}\.\d+)?")
 		words.DATE = pattern("^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2}\.\d+)?)?")
-		words.NUMBER = pattern("^\d+(\.\d+)?([Ee]\d+)?") // Number literals including exponential notation.
+		// Number literals: digits, including the underscore as thousands separator and exponential notation.
+		words.NUMBER = pattern("^(\d+|\d{1,2}(_\d{3})+)(\.\d+)?([Ee]\d+)?")
 		words.CONTINUE = pattern("^:$")
 		words.ASSIGN = pattern("^:=")
 		words.LAMBDA = pattern("^->")
@@ -53,8 +54,8 @@ component {
 		words.BRACKETCLOSE = pattern("^\]")
 		words.BRACEOPEN = pattern("^\{")
 		words.BRACECLOSE = pattern("^\}")
-		words.PIPEOPEN = pattern("^|")
-		words.PIPECLOSE = pattern("^|")
+		words.BAROPEN = pattern("^|")
+		words.BARCLOSE = pattern("^|")
 		// Spaces can be significant. Multiple spaces are treated as one.
 		words.SPACE = pattern("^[ ]+")
 		words.DELIMITER = pattern("^[,;]")

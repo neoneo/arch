@@ -27,7 +27,7 @@ grootste_oplossing := abcformule(1, 2, 3) fold using:
 	with -infinity --->
 </cfsavecontent>
 <cfsavecontent variable="code">
-<!--- -4a --->
+<!--- - -a(a + b) * x ^ 2 3 --->
 x := (-b + teken sqrt (b ^ 2 -4ac)) / 2a
 <!--- sin -x --->
 <!--- sin (a + b)(c + d) --->
@@ -38,14 +38,15 @@ x := (-b + teken sqrt (b ^ 2 -4ac)) / 2a
 </cfsavecontent>
 <cfscript>
 	l = new arch.Lexer()
-	p = new arch.Parser()
 	tokens = l.tokenize(code)
 	// dump(tokens)
 	// exit;
 
+	p = new arch.Parser()
 	nodes = p.group(tokens)
 	nodes = p.split(nodes)
 	p.identify(nodes)
 	// This should be an array of length 1.
+	nodes = p.isolate(nodes)
 	dump(nodes)
 </cfscript>

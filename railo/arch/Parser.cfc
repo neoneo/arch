@@ -1,7 +1,7 @@
 component {
 
-	this.open = ["BEGIN", "PARENOPEN", "BRACKETOPEN", "BRACEOPEN", "PIPEOPEN"]
-	this.close = ["END", "PARENCLOSE", "BRACKETCLOSE", "BRACECLOSE", "PIPECLOSE"]
+	this.open = ["BEGIN", "PARENOPEN", "BRACKETOPEN", "BRACEOPEN", "BAROPEN"]
+	this.close = ["END", "PARENCLOSE", "BRACKETCLOSE", "BRACECLOSE", "BARCLOSE"]
 	this.symbols = ["end", ")", "]", "}", "|"]
 
 	include template="metadata.cfm";
@@ -79,10 +79,8 @@ component {
 		// For now assume unknown identifiers are variables. TODO: get from the scope
 		var index = 1 // Expression index.
 		for (var expression in arguments.expressions) {
-			var length = expression.len()
-			// var i = 0 // Node index.
+
 			for (var node in expression) {
-				// i += 1
 				node.name = node.lexeme
 				if (node.type == "OPERATOR") {
 					node.type = "FUNCTION"
@@ -105,9 +103,11 @@ component {
 				- groups: (a+b)(c+d)
 				- number group: 4(a+b)
 				- variable variable: ab (TODO)
+				- matrices and vectors (TODO)
 			*/
 			var i = 1
 			var nodes = []
+			var length = expression.len()
 			while (i <= length) {
 				var current = expression[i]
 				if (i + 1 <= length) {
@@ -116,16 +116,18 @@ component {
 					if ("NUMBER VARIABLE PARENOPEN" contains current.type && "NUMBER VARIABLE PARENOPEN" contains next.type) {
 						var group = {
 							type: "GROUP",
-							expression: [current],
+							expressions: [
+								[current]
+							],
 							line: current.line,
 							column: current.column,
-							lexeme: ""
+							source: 124
 						}
 
 						i += 1
 						current = next
 						while (i <= length && "NUMBER VARIABLE PARENOPEN" contains current.type) {
-							group.expression.append(current)
+							group.expressions[1].append(current)
 							i += 1
 							if (i <= length) {
 								current = expression[i]
@@ -150,63 +152,108 @@ component {
 
 	}
 
+	public Array function isolate(required Array expressions) {
+		return arguments.expressions.map(function (expression) {
+			return this.isolate2(arguments.expression);
+		});
+	}
+
 	/**
 	 * Isolates functions that are already in prefix into their own groups.
 	 */
-	public Array function isolate(required Array expression, Numeric consume = -1) {
-
+	private Array function isolate2(required Array expression, Numeric consume = -1) {
 		var nodes = []
 
 		while (!arguments.expression.isEmpty() && (arguments.consume == -1 || arguments.consume >= nodes.len())) {
 			var node = arguments.expression.first()
 			arguments.expression.deleteAt(1)
 
+			// For some of the following operations, we need the next node.
+			var next = !arguments.expression.isEmpty() ? arguments.expression.first() : null;
+
 			/*
-				First, insert multiplication operators if:
+				First, group postfix functions with their arguments. Postfix functions can have at most arity 1.
+				Do this regardless of the mode (infix / prefix) we're in. Postfix functions cannot be used as prefix
+				functions, because when the function name is alphanumeric, a space is required to separate it.
+			*/
+			if (next !== null && next.type == "FUNCTION" && this.metadata[next.name].pos == "postfix") {
+				// The current node must be an operand.
+				if ("LAMBDA ASSIGN CHAIN" does not contain node.type) {
+					nodes.append({
+						type: "GROUP",
+						line: node.line,
+						column: node.column,
+						expressions: [
+							[node, next]
+						],
+						source: 183
+					})
+				}
+			}
+
+			/*
+				Insert multiplication operators if:
 				1. We are in infix mode.
-				2. The previous node is not function, lambda or assign.
-				3. The next node is not lambda, assign or a function with arity 2.
+				2. The previous node is not function, unaryminus, lambda, assign or chain.
+				3. The current node is not space, lambda, assign, chain or a function with arity 2.
 			*/
 			if (arguments.consume == -1) {
-				if (!nodes.isEmpty() && "FUNCTION LAMBDA ASSIGN" does not contain nodes.last().type) {
-					if (!arguments.expression.isEmpty()) {
-						var next = arguments.expression.first()
-						if ("FUNCTION LAMBDA ASSIGN" does not contain next.type || next.type == "FUNCTION" && this.metadata[next.name].args.len() != 2) {
-							nodes.append({
-								type: "FUNCTION",
-								name: "*",
-								line: node.line,
-								column: node.column
-							})
-						}
+				if (!nodes.isEmpty() && "FUNCTION UNARYMINUS LAMBDA ASSIGN CHAIN" does not contain nodes.last().type) {
+					if ("SPACE FUNCTION LAMBDA ASSIGN CHAIN" does not contain node.type || node.type == "FUNCTION" && this.metadata[node.name].args.len() != 2) {
+						nodes.append({
+							type: "FUNCTION",
+							name: "*",
+							line: node.line,
+							column: node.column
+						})
 					}
 				}
 			}
 
 			if (node.type == "FUNCTION") {
 				/*
-					Check for unary - or +. This is the case if:
+					Check for unary - or +. This is the case if we have a - or + and:
 					1. The next node is not a space, and
 					2a. We are in prefix mode, or
 					2b. There either is no previous node, or it is function, lambda or assign.
 				*/
-				var arity = 1 // In case of unary -. We can overwrite this later if necessary.
 				if ("-+" contains node.name) {
 					// In infix as well as prefix mode, the next node may not be a space.
-					if (!arguments.expression.isEmpty() && arguments.expression.first().type != "SPACE") {
+					if (next !== null && next.type != "SPACE") {
 						// Now, the function is unary if we're in prefix mode or condition 2b above applies.
 					 	// The previous node is now the last node in the nodes array.
 					 	if (arguments.consume > -1 || nodes.isEmpty() || "FUNCTION LAMBDA ASSIGN" contains nodes.last().type) {
 							// Ignore unary +.
-							if (node.name == "+") {
-								continue;
+							if (node.name == "-") {
+								node.type = "UNARYMINUS"
+								// If we're in prefix mode, group the node and the next one.
+								if (arguments.consume > -1) {
+									// Consume the next node.
+									arguments.expression.deleteAt(1)
+									// TODO: fix code duplication
+									if ("PARENOPEN GROUP BEGIN" contains next.type) {
+										next.expressions = this.isolate(next.expressions)
+									}
+									nodes.append({
+										type: "GROUP",
+										expressions: [
+											[node, next]
+										],
+										line: node.line,
+										column: node.column,
+										source: 229
+									})
+								} else {
+									// Otherwise, leave as is. We're in infix, so operator precedence has to be taken into account.
+									nodes.append(node)
+								}
 							}
-							node.type = "UNARY"
+							continue;
 					 	}
 					}
-				} else {
-					arity = this.metadata[node.name].args.len()
 				}
+
+				var arity = this.metadata[node.name].args.len()
 				/*
 					The function is in prefix if:
 					- We are in prefix mode already, or:
@@ -217,10 +264,11 @@ component {
 					var group = {
 						type: "GROUP",
 						line: node.line,
-						column: node.column
+						column: node.column,
+						source: 242
 					}
 					// Consume the arguments. This may consume more nodes than there are arguments.
-					var args = this.isolate(arguments.expression, arity)
+					var args = this.isolate2(arguments.expression, arity)
 					group.expressions = args.prepend(node) // Prepend the function to the arguments.
 					nodes.append(group)
 				} else {
@@ -228,40 +276,21 @@ component {
 					nodes.append(node)
 				}
 
-			} else if ("LAMBDA ASSIGN" contains node.type) {
-				// If, for whatever reason, these nodes are already in prefix, treat them as binary functions that consume the whole expression.
-				// We can do this because these operators have lowest precedence when in infix. But in general, using these operators in prefix would be bad practice.
+			} else if ("LAMBDA ASSIGN CHAIN" contains node.type) {
 				/*
-					These nodes are in prefix if:
+					These nodes may not be used as prefix operators. This is the case if:
 					- We are in prefix mode, or
 					- This is the first node in the expression.
 				*/
 				if (arguments.consume > -1 || nodes.isEmpty()) {
-					var group = {
-						type: "GROUP",
-						line: node.line,
-						column: node.column
-					}
-					if (arguments.expression.len() < 2) {
-						Throw("Operator '#node.name#' requires 2 operands", "ParseException");
-					}
-					// The next node is the variable (assign) or the arguments (lambda).
-					var operand = arguments.expression.first()
-					arguments.expression.deleteAt(1)
-					// The remainder is the value or the function body respectively.
-					var body = this.isolate(arguments.expression)
-
-					group.expressions = [node, operand, body]
-					nodes.append(group)
-				} else {
-					nodes.append(node)
+					Throw("Operator '#node.lexeme#' cannot be used as prefix operator", "ParseException", "{line: #node.line#, column: #node.column#}");
 				}
 
+				nodes.append(node)
+
 			} else if (node.type != "SPACE") {
-				if ("PARENOPEN GROUP" contains node.type) {
-					node.expressions = node.expressions.map(function (expression) {
-						return this.isolate(arguments.expression); // No consume parameter, so start in infix mode.
-					})
+				if ("PARENOPEN GROUP BEGIN" contains node.type) {
+					node.expressions = this.isolate(node.expressions); // No consume parameter, so start in infix mode.
 				}
 				nodes.append(node)
 			}

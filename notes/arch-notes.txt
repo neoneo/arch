@@ -152,14 +152,15 @@ eigenvalues(matrix)
 
 Operator voorrang van laag naar hoog:
 :=
--> <-
+->
+<-
 \/
 /\
 = ~
 < >
 (alle letters)
 + -
-* /
+* / mod - (unair)
 ^
 (alle andere karakters)
 

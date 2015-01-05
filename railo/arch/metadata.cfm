@@ -5,7 +5,7 @@
 	"-": {"args": {"a": "real", "b": "real"}, "result": "real", "pos": "infix", "assoc": "left"},
 	"*": {"args": {"a": "real", "b": "real"}, "result": "real", "pos": "infix", "assoc": "left"},
 	"/": {"args": {"a": "real", "b": "real"}, "result": "real", "pos": "infix", "assoc": "left"},
-	"^": {"args": {"a": "real", "b": "real"}, "result": "real", "assoc": "right"},
+	"^": {"args": {"a": "real", "b": "real"}, "result": "real", "pos": "infix", "assoc": "right"},
 	"mod": {"args": {"a": "real", "b": "real"}, "result": "real", "assoc": "right"},
 	"!": {"args": {"n": "integer"}, "result": "integer", "pos": "postfix"},
 	"sqrt": {"args": {"x": "real"}, "result": "real", "pos": "prefix"},
